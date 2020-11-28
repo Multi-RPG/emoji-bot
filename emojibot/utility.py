@@ -16,11 +16,11 @@ def parse_emoji(msg) -> list():
     return emojis_list
 
 
-def is_in_emoji_list(emoji):
+def is_in_emoji_list(emoji) -> bool:
     return emoji in EMOJI_LIST_ID
 
 
-def load_emoji_database(emoji_list):
+def load_emoji_database(emoji_list) -> None:
     database = Database()
     database.connect()
 
