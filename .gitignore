@@ -3,6 +3,9 @@ __pycache__/
 # virtual environment
 venv/
 
+# logging files
+logs/
+
 # config file
 token.ini
 
