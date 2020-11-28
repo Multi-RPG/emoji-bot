@@ -45,3 +45,11 @@ class Database:
         row = cur.fetchone()
         log.debug(f"execute_select result: {row[0]}")
         return row[0]
+
+    def execute_select_leaderboard(self, arg):
+        cur = self.connection.cursor()
+        cur.execute(Query.select_leaderboard, (arg,))
+        rows = cur.fetchall()
+        log.debug(f"execute_select_top result {len(rows)}")
+        assert len(rows) == arg
+        return rows

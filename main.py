@@ -11,15 +11,13 @@ from pathlib import Path
 from init_logging import init_logging
 
 from emojibot.constants import EXTENSIONS
-from emojibot.constants import EMOJI_LIST
-from emojibot.constants import EMOJI_LIST_ID
+from emojibot.constants import EMO
 
 from emojibot.utility import parse_id
 from emojibot.utility import parse_emoji
 from emojibot.utility import load_emoji_database
 
 from emojibot.database import Database
-from emojibot.emoji import Emoji
 
 # initialize logging
 # TODO: add arg parser
@@ -42,7 +40,6 @@ except IOError:
 client = commands.Bot(command_prefix=["e!"])
 client.remove_command("help")
 
-
 log.info("Connecting...")
 
 
@@ -57,19 +54,16 @@ async def on_ready():
 
     log.info("Loading server emojis...")
     for emoji in client.emojis:
-        emo = Emoji(emoji.id, emoji.name, emoji)
-        EMOJI_LIST.append(emo)
-        EMOJI_LIST_ID.append(emoji.id)
-    assert len(EMOJI_LIST) > 0, "Empty emojis, didn't load emojis"
-    assert len(EMOJI_LIST) == len(EMOJI_LIST_ID), ""
+        EMO.add(emoji.id, emoji.name, emoji)
+    assert len(EMO.emoji_list) > 0, "Empty emojis, didn't load emojis"
 
     # load emoji database if necessary.
-    load_emoji_database(EMOJI_LIST)
+    load_emoji_database(EMO)
 
     # TODO:
     # load users into the USER_LIST cache.
 
-    log.info(f"{len(EMOJI_LIST)} emojis")
+    log.info(f"{len(EMO.emoji_list)} emojis")
     log.info("Done loading emojis!")
 
 
@@ -105,7 +99,7 @@ async def on_message(message):
         for em in emojis_list:
             log.debug(f"{em}")
             emoji_id = parse_id(em)
-            if emoji_id in EMOJI_LIST_ID:
+            if emoji_id in EMO.emoji_list:
                 emojis_id.append(emoji_id)
 
         # update the emojis

@@ -2,12 +2,10 @@
 import re
 from typing import NamedTuple
 
-# List of Emoji object
-EMOJI_LIST = list()
-USER_LIST = list()
+from emojibot.emoji import Emoji
 
-# List of emoji ids for fast check
-EMOJI_LIST_ID = list()
+# Emoji list object
+EMO = Emoji()
 
 EMOJI_PATTERN = re.compile(
     r"(?:<){1}(?:a)?\:(?:[0-9a-zA-Z_])+\:(?:[0-9])+(?:>){1}"
@@ -62,3 +60,11 @@ class Query(NamedTuple):
     )
     select_emoji_count = "SELECT usage_count FROM emoji WHERE emoji_id = ?"
     emoji_exists = "SELECT EXISTS (SELECT 1 FROM emoji WHERE emoji_id = ?)"
+    select_leaderboard = (
+        "SELECT emoji_id, usage_count FROM emoji "
+        "ORDER BY usage_count DESC LIMIT ?"
+    )
+
+
+class Color(NamedTuple):
+    yellow = 0xfdd14b

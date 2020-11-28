@@ -5,18 +5,13 @@ from dataclasses import dataclass
 @dataclass
 class Emoji:
     """Emoji class"""
-    id: int
-    name: str
-    full_name: str
+    def __init__(self):
+        self.emoji_list = dict()
 
-    def get_id(self) -> int:
-        return self.id
-
-    def get_name(self) -> str:
-        return self.name
-
-    def get_full_name(self) -> str:
-        return self.full_name
+    # TODO: add __iter__ so it's easy to iterate this.
+    def add(self, emoji_id, name, full_name):
+        temp_list = [name, full_name]
+        self.emoji_list.update({emoji_id: temp_list})
 
     @staticmethod
     def get_emoji_ranking():

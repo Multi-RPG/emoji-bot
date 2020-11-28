@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from emojibot.constants import EMOJI_PATTERN
 from emojibot.constants import EMOJI_ID_PATTERN
-from emojibot.constants import EMOJI_LIST_ID
+from emojibot.constants import EMO
 
 from emojibot.database import Database
 
@@ -17,14 +17,14 @@ def parse_emoji(msg) -> list():
 
 
 def is_in_emoji_list(emoji) -> bool:
-    return emoji in EMOJI_LIST_ID
+    return emoji in EMO.emoji_list
 
 
-def load_emoji_database(emoji_list) -> None:
+def load_emoji_database(emo) -> None:
     database = Database()
     database.connect()
 
-    for emoji_obj in emoji_list:
-        if database.execute_exist(emoji_obj.get_id()):
+    for emoji_id, name in emo.emoji_list.items():
+        if database.execute_exist(emoji_id):
             continue
-        database.execute_insert(emoji_obj.get_id(), emoji_obj.get_name())
+        database.execute_insert(emoji_id, name)
