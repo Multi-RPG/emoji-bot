@@ -1,0 +1,10 @@
+__pycache__/
+
+# virtual environment
+venv/
+
+# config file
+token.ini
+
+# database file
+data/
