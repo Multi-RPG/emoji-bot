@@ -2,6 +2,13 @@
 import re
 from typing import NamedTuple
 
+# List of Emoji object
+EMOJI_LIST = list()
+USER_LIST = list()
+
+# List of emoji ids for fast check
+EMOJI_LIST_ID = list()
+
 EMOJI_PATTERN = re.compile(
     r"(?:<){1}(?:a)?\:(?:[0-9a-zA-Z_])+\:(?:[0-9])+(?:>){1}"
 )
@@ -12,7 +19,7 @@ EMOJI_NAME_PATTERN = re.compile(r"(?:<?)(?::?)(?:[0-9]?)(?:>?)")
 # Matches the id of an emoji
 EMOJI_ID_PATTERN = re.compile(r"(?:[0-9]){18}")
 
-# To load extensions
+# extensions for bot to load in cog
 EXTENSIONS = [
     "emojibot.commands",
 ]

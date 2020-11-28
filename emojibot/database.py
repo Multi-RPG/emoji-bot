@@ -34,3 +34,9 @@ class Database:
         cur = self.connection.cursor()
         cur.execute(Query.update_emoji_count, (arg,))
         self.connection.commit()
+
+    def execute_select(self, arg):
+        cur = self.connection.cursor()
+        cur.execute(Query.select_emoji_count, (arg,))
+        row = cur.fetchone()
+        return row[0]
