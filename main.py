@@ -2,10 +2,13 @@
 import configparser
 import sys
 import re
+import logging
 # import time
 
 from discord.ext import commands
 from pathlib import Path
+
+from init_logging import init_logging
 
 from emojibot.constants import EXTENSIONS
 from emojibot.constants import EMOJI_LIST
@@ -18,6 +21,12 @@ from emojibot.utility import load_emoji_database
 from emojibot.database import Database
 from emojibot.emoji import Emoji
 
+# initialize logging
+# TODO: add arg parser
+# change to logging.DEBUG during debug
+level = logging.INFO
+log = init_logging("emobot", level)
+
 # Token Configuration
 config = configparser.ConfigParser()
 token_path = Path("configs/token.ini")
@@ -26,7 +35,7 @@ try:
     config.read(token_path)
     TOKEN = config.get("TOKEN", "token")
 except IOError:
-    print("An error occured trying to read the file.")
+    log.error("An error occured trying to read the file.")
     sys.exit()
 
 # Bot command prefix
@@ -34,19 +43,19 @@ client = commands.Bot(command_prefix=["e!"])
 client.remove_command("help")
 
 
-print("Connecting...")
+log.info("Connecting...")
 
 
 @client.event
 async def on_ready():
-    print(f"{client.user.name} has connected to Discord!")
+    log.info(f"{client.user.name} has connected to Discord!")
 
     for guild in client.guilds:
-        print(f"connected to [ {guild.name} - id: {guild.id} ]")
+        log.info(f"connected to [ {guild.name} - id: {guild.id} ]")
 
-    print(f"{len(client.guilds)} servers")
+    log.info(f"{len(client.guilds)} servers")
 
-    print("Loading server emojis...")
+    log.info("Loading server emojis...")
     for emoji in client.emojis:
         emo = Emoji(emoji.id, emoji.name, emoji)
         EMOJI_LIST.append(emo)
@@ -60,8 +69,8 @@ async def on_ready():
     # TODO:
     # load users into the USER_LIST cache.
 
-    print(f"{len(EMOJI_LIST)} emojis")
-    print("Done loading emojis!")
+    log.info(f"{len(EMOJI_LIST)} emojis")
+    log.info("Done loading emojis!")
 
 
 @client.listen()
@@ -76,7 +85,7 @@ async def on_message(message):
     # user_id = emoji_user.id
 
     msg = message.content
-    # print(f"user: {emoji_user}, user_id: {user_id}, message content: {msg}")
+    log.debug(f"user: {emoji_user}, message content: {msg}")
 
     # if msg starts with !e, ignore.
     if re.match(r"(?:^e!)", msg):
@@ -94,6 +103,7 @@ async def on_message(message):
 
         # check if is usable emoji.
         for em in emojis_list:
+            log.debug(f"{em}")
             emoji_id = parse_id(em)
             if emoji_id in EMOJI_LIST_ID:
                 emojis_id.append(emoji_id)
@@ -104,6 +114,7 @@ async def on_message(message):
         for emo_id in emojis_id:
             # bump the emoji count
             # bump the emoji count in the user dictionary
+            log.debug(f"emoji with {emoji_id} updated.")
             database.execute_update_emoji(emo_id)
 
 
@@ -114,6 +125,6 @@ if __name__ == "__main__":
 
         except Exception as e:
             exc = f"{type(e).__name__}: {e}"
-            print(f"Failed to load extension {extension}\n {exc}")
+            log.error(f"Failed to load extension {extension}\n {exc}")
 
     client.run(TOKEN)

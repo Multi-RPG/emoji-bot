@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 import sqlite3
+import logging
 
 from sqlite3 import Error
 from dataclasses import dataclass
 
 from emojibot.constants import Query
+
+log = logging.getLogger("emobot")
 
 
 @dataclass
@@ -17,7 +20,7 @@ class Database:
             self.connection.execute("PRAGMA foreign_keys = ON")
             return self.connection
         except Error as e:
-            print(e)
+            log.error(e)
 
     def execute_insert(self, *args):
         cur = self.connection.cursor()
@@ -28,6 +31,7 @@ class Database:
         cur = self.connection.cursor()
         cur.execute(Query.emoji_exists, (arg,))
         row = cur.fetchone()
+        # log.debug(f"execute_exist result: {row[0]}")
         return row[0] == 1
 
     def execute_update_emoji(self, arg):
@@ -39,4 +43,5 @@ class Database:
         cur = self.connection.cursor()
         cur.execute(Query.select_emoji_count, (arg,))
         row = cur.fetchone()
+        log.debug(f"execute_select result: {row[0]}")
         return row[0]
