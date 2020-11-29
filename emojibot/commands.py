@@ -134,7 +134,7 @@ class Commands(commands.Cog):
         # set the counter to properly display rank numbers
         counter = 1
 
-        log.info(rankings)
+        log.debug(rankings)
         for emoji_id, rank in rankings:
             try:
                 name_field_column += (

@@ -115,7 +115,7 @@ async def on_message(message):
         for emo_id in emojis_id:
             # bump the emoji count
             # bump the emoji count in the user dictionary
-            log.debug(f"emoji with {emoji_id} updated.")
+            log.debug(f"emoji with {emo_id} updated.")
             database.execute_update_emoji(emo_id)
 
 
