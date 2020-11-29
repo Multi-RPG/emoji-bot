@@ -27,6 +27,11 @@ class Database:
         cur.execute(Query.insert_new_emoji, (args[0], args[1]))
         self.connection.commit()
 
+    def execute_delete(self, arg):
+        cur = self.connection.cursor()
+        cur.execute(Query.delete_emoji, (arg,))
+        self.connection.commit()
+
     def execute_exist(self, arg) -> bool:
         cur = self.connection.cursor()
         cur.execute(Query.emoji_exists, (arg,))

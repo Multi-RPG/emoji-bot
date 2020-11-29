@@ -27,6 +27,9 @@ class Query(NamedTuple):
     insert_new_emoji = (
         "INSERT INTO emoji (emoji_id, name, usage_count)" "VALUES (?, ?, 0)"
     )
+    delete_emoji = (
+        "DELETE FROM emoji WHERE emoji_id = ?"
+    )
     update_emoji_count = (
         "UPDATE emoji SET usage_count = usage_count + 1 WHERE emoji_id = ?"
     )
