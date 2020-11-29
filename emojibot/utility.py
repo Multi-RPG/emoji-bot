@@ -24,7 +24,16 @@ def load_emoji_database(emo) -> None:
     database = Database()
     database.connect()
 
+    # reset all emojis to inactive
+    database.execute_reset_active_emojis()
+
     for emoji_id, name in emo.emoji_list.items():
         if database.execute_exist(emoji_id):
+            # mark found emoji as active
+            database.execute_set_emoji_active(emoji_id)
             continue
-        database.execute_insert(emoji_id, name)
+        # name is a list, so use the first index
+        database.execute_insert(emoji_id, name[0])
+
+    # delete all inactive emojis from database
+    database.execute_delete_inactive_emojis()
