@@ -3,6 +3,7 @@ import configparser
 import sys
 import re
 import logging
+import discord
 # import time
 
 from discord.ext import commands
@@ -65,6 +66,9 @@ async def on_ready():
 
     log.info(f"{len(EMO.emoji_list)} emojis")
     log.info("Done loading emojis!")
+
+    pog_du = discord.Game(name="e!help for commands")
+    await client.change_presence(activity=pog_du)
 
 
 @client.listen()
