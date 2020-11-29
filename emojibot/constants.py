@@ -33,6 +33,9 @@ class Query(NamedTuple):
     update_emoji_count = (
         "UPDATE emoji SET usage_count = usage_count + 1 WHERE emoji_id = ?"
     )
+    reset_active_emojis = "UPDATE emoji SET active = 0"
+    set_emoji_active = "UPDATE emoji SET active = 1 WHERE emoji_id = ?"
+    delete_inactive_emojis = "DELETE FROM emoji WHERE active = 0"
     select_emoji_count = "SELECT usage_count FROM emoji WHERE emoji_id = ?"
     emoji_exists = "SELECT EXISTS (SELECT 1 FROM emoji WHERE emoji_id = ?)"
     select_leaderboard = (

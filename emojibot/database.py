@@ -39,6 +39,21 @@ class Database:
         # log.debug(f"execute_exist result: {row[0]}")
         return row[0] == 1
 
+    def execute_set_emoji_active(self, arg):
+        cur = self.connection.cursor()
+        cur.execute(Query.set_emoji_active, (arg,))
+        self.connection.commit()
+
+    def execute_reset_active_emojis(self):
+        cur = self.connection.cursor()
+        cur.execute(Query.reset_active_emojis)
+        self.connection.commit()
+
+    def execute_delete_inactive_emojis(self):
+        cur = self.connection.cursor()
+        cur.execute(Query.delete_inactive_emojis)
+        self.connection.commit()
+
     def execute_update_emoji(self, arg):
         cur = self.connection.cursor()
         cur.execute(Query.update_emoji_count, (arg,))
