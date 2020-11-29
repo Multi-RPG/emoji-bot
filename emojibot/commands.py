@@ -23,7 +23,6 @@ class Commands(commands.Cog):
     client: commands.Bot
 
     """Help command"""
-
     @commands.command(
         name="help",
         description="command information",
@@ -31,17 +30,13 @@ class Commands(commands.Cog):
         aliases=["h", "H", "HELP"],
     )
     async def helper(self, ctx):
-        await ctx.send("hello")
+        msg = (
+            "```e!count emoji - the total number of uses\n"
+            "e!rank - top 15 emojis```"
+        )
+        await ctx.send(msg)
 
-    """ Count command
-
-        The count command works with one arg.
-        If it's passed more than 1 args, it will just ignore the rest.
-
-        e.g.
-        e!count emoji_name
-    """
-
+    """Count command"""
     @commands.cooldown(1, 1, commands.BucketType.user)
     @commands.command(
         name="count",
@@ -49,6 +44,13 @@ class Commands(commands.Cog):
         aliases=["c", "C", "COUNT"],
     )
     async def count_method(self, ctx, *arg):
+        """
+            The count command works with one arg.
+            If it's passed more than 1 args, it will just ignore the rest.
+
+            e.g.
+            e!count emoji_name
+        """
         em = discord.Embed(title="", colour=Color.yellow)
         author = ctx.author
         author_avatar = (
