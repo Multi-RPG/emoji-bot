@@ -136,9 +136,15 @@ class Commands(commands.Cog):
 
         log.info(rankings)
         for emoji_id, rank in rankings:
-            name_field_column += (
-                f"{counter}. {EMO.emoji_list[emoji_id][1]} \u200B \u200B \n"
-            )
+            try:
+                name_field_column += (
+                    f"{counter}. {EMO.emoji_list[emoji_id][1]} \u200B \u200B \n"
+                )
+            # KeyError may happen if the bot no longer has access to a certain emoji.
+            except KeyError as error:
+                log.error(f"{type(error).__name__}! Couldn't locate emoji ID {error}")
+                continue
+
             count_field_column += f"{rank}\n"
             counter += 1
 
