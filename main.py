@@ -106,6 +106,9 @@ async def on_message(message):
             if emoji_id in EMO.emoji_list:
                 emojis_id.append(emoji_id)
 
+        # convert list into set to remove duplicates
+        emojis_id = set(emojis_id)
+
         # update the emojis
         database = Database()
         database.connect()
