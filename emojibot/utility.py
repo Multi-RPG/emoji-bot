@@ -34,6 +34,7 @@ def load_emoji_database(emo) -> None:
             continue
         # name is a list, so use the first index
         database.execute_insert(emoji_id, name[0])
+        database.execute_set_emoji_active(emoji_id)
 
     # delete all inactive emojis from database
     database.execute_delete_inactive_emojis()
