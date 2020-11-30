@@ -124,34 +124,40 @@ class Commands(commands.Cog):
             f"{author.id}/{author.avatar}.webp?size=64"
         )
 
-        # retrieve top 15 emojis
-        rankings = database.execute_select_leaderboard(15)
+        # retrieve top 16 emojis
+        rankings = database.execute_select_leaderboard(16)
 
         # variables for embed
-        name_field_column = ""
-        count_field_column = ""
+        column_1 = ""
+        column_2 = ""
 
         # set the counter to properly display rank numbers
         counter = 1
 
         log.debug(rankings)
-        for emoji_id, rank in rankings:
+        # start looping through the database results of top 16 used emojis
+        for emoji_id, num_uses in rankings:
             try:
-                name_field_column += (
-                    f"{counter}. {EMO.emoji_list[emoji_id][1]} \u200B \u200B \n"
-                )
+                # attempt to build the columns needed to display rankings
+                if counter < 9:
+                    column_1 += (
+                        f"**{counter}.** {EMO.emoji_list[emoji_id][1]} \u200B \u200B \n`{num_uses} uses`\n"
+                    )
+                else:
+                    column_2 += (
+                        f"**{counter}.** {EMO.emoji_list[emoji_id][1]} \u200B \u200B \n`{num_uses} uses`\n"
+                    )
             # KeyError may happen if the bot no longer has access to a certain emoji.
             except KeyError as error:
                 log.error(f"{type(error).__name__}! Couldn't locate emoji ID {error}")
                 continue
 
-            count_field_column += f"{rank}\n"
             counter += 1
 
         # embed the rankings
         em = discord.Embed(title="", colour=Color.yellow)
-        em.add_field(name="Top 15 Emoji", value=name_field_column, inline=True)
-        em.add_field(name="Uses", value=count_field_column, inline=True)
+        em.add_field(name="Top 16 Emojis", value=column_1, inline=True)
+        em.add_field(name="\u200B", value=column_2, inline=True)
         big_url = (
             "https://cdn.shopify.com/s/files/1/0185/5092/"
             "products/objects-0104_800x.png?v=1369543363"
