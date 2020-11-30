@@ -48,11 +48,10 @@ log.info("Connecting...")
 @client.event
 async def on_ready():
     log.info(f"{client.user.name} has connected to Discord!")
+    log.info(f"connected to {len(client.guilds)} servers.")
 
     for guild in client.guilds:
         log.info(f"connected to [ {guild.name} - id: {guild.id} ]")
-
-    log.info(f"{len(client.guilds)} servers")
 
     log.info("Loading server emojis...")
     for emoji in client.emojis:

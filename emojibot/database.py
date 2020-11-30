@@ -17,15 +17,17 @@ class Database:
     def connect(self):
         try:
             self.connection = sqlite3.connect(self.data_file)
-            self.connection.execute("PRAGMA foreign_keys = ON")
+            self.connection.execute('PRAGMA journal_mode = MEMORY')
             return self.connection
         except Error as e:
             log.error(e)
 
     def execute_insert(self, *args):
         cur = self.connection.cursor()
-        cur.execute(Query.insert_new_emoji, (args[0], args[1]))
+        cur.executemany(Query.insert_new_emoji, *args)
         self.connection.commit()
+        log.debug(f"total rowcount {cur.rowcount}")
+        cur.close()
 
     def execute_delete(self, arg):
         cur = self.connection.cursor()

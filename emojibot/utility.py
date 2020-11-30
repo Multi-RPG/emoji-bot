@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
+import logging
+
+from typing import List, Tuple
+
 from emojibot.constants import EMOJI_PATTERN
 from emojibot.constants import EMOJI_NAME_PATTERN
 from emojibot.constants import EMOJI_ID_PATTERN
 from emojibot.constants import EMO
 
 from emojibot.database import Database
+
+log = logging.getLogger("emobot")
 
 
 def parse_id(emoji) -> int:
@@ -27,22 +33,32 @@ def is_in_emoji_list(emoji) -> bool:
 
 
 def load_emoji_database(emo) -> None:
+    log.debug("checking for new emojis...")
     database = Database()
     database.connect()
 
     # reset all emojis to inactive
+    log.debug("executing reset active emojis...")
     database.execute_reset_active_emojis()
 
+    # a list of tuple containing the emoji_id and the emoji's name.
+    contents: List[Tuple[int, str]] = []
     for emoji_id, name in emo.emoji_list.items():
+        database.execute_set_emoji_active(emoji_id)
         if database.execute_id_exist(emoji_id):
-            # mark any useable emoji as active
-            database.execute_set_emoji_active(emoji_id)
             continue
+        contents.append((emoji_id, name[0]))
 
-        # insert new emojis into database, then mark them as active
-        # name is a list, so use the first index
-        database.execute_insert(emoji_id, name[0])
+    # do insert in bulk
+    log.debug("inserting new emojis...")
+    database.execute_insert(contents)
+    log.debug("done inserting...")
+
+    log.debug("setting active emojis...")
+    for emoji_id in emo.emoji_list.keys():
         database.execute_set_emoji_active(emoji_id)
 
+    log.debug("deleting inactive emojis...")
     # delete all inactive emojis from database
     database.execute_delete_inactive_emojis()
+    log.debug("done!")
