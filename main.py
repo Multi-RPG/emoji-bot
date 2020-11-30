@@ -97,7 +97,7 @@ async def on_message(message):
         return
     else:
         # if user sent an emoji less than 15s ago, exit this event.
-        if await check_if_cooldown(str(message.author)):
+        if await check_if_cooldown(str(message.author.id)):
             return
 
         # connect to database
