@@ -140,8 +140,8 @@ async def check_if_cooldown(user_id):
     if user_id not in user_data:
         user_data[user_id] = 0
 
-    # if it's been more than 15 seconds since the user's last emoji
-    if time.time() - user_data[user_id] > 15:
+    # if it's been more than 30 seconds since the user's last emoji
+    if time.time() - user_data[user_id] > 30:
         # set new timestamp for user's latest emoji
         user_data[user_id] = time.time()
         # dump new data into file
