@@ -128,21 +128,23 @@ class Commands(commands.Cog):
         rankings = database.execute_select_leaderboard(16)
 
         # variables for embed
-        name_field_column = ""
-        count_field_column = ""
+        column_1 = ""
+        column_2 = ""
 
         # set the counter to properly display rank numbers
         counter = 1
 
         log.debug(rankings)
+        # start looping through the database results of top 16 used emojis
         for emoji_id, num_uses in rankings:
             try:
+                # attempt to build the columns needed to display rankings
                 if counter < 9:
-                    name_field_column += (
+                    column_1 += (
                         f"**{counter}.** {EMO.emoji_list[emoji_id][1]} \u200B \u200B \n`{num_uses} uses`\n"
                     )
                 else:
-                    count_field_column += (
+                    column_2 += (
                         f"**{counter}.** {EMO.emoji_list[emoji_id][1]} \u200B \u200B \n`{num_uses} uses`\n"
                     )
             # KeyError may happen if the bot no longer has access to a certain emoji.
@@ -154,8 +156,8 @@ class Commands(commands.Cog):
 
         # embed the rankings
         em = discord.Embed(title="", colour=Color.yellow)
-        em.add_field(name="Top 16 Emojis", value=name_field_column, inline=True)
-        em.add_field(name="\u200B", value=count_field_column, inline=True)
+        em.add_field(name="Top 16 Emojis", value=column_1, inline=True)
+        em.add_field(name="\u200B", value=column_2, inline=True)
         big_url = (
             "https://cdn.shopify.com/s/files/1/0185/5092/"
             "products/objects-0104_800x.png?v=1369543363"
