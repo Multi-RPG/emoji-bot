@@ -4,7 +4,8 @@ import sys
 import re
 import logging
 import discord
-# import time
+import json
+import time
 
 from discord.ext import commands
 from pathlib import Path
@@ -73,17 +74,15 @@ async def on_ready():
 
 @client.listen()
 async def on_message(message):
-    emoji_user = message.author
-
     # check if bot
-    if emoji_user == client.user:
+    if message.author == client.user:
         return
 
     # TODO:
     # user_id = emoji_user.id
 
     msg = message.content
-    log.debug(f"user: {emoji_user}, message content: {msg}")
+    log.debug(f"user: {message.author}, message content: {msg}")
 
     # if msg starts with !e, ignore.
     if re.match(r"(?:^e!)", msg):
@@ -96,6 +95,10 @@ async def on_message(message):
     if len(emojis_list) == 0:
         return
     else:
+        # if user sent an emoji less than 15s ago, exit this event.
+        if await check_if_cooldown(str(message.author.id)):
+            return
+
         # connect to database
         database = Database()
         database.connect()
@@ -126,6 +129,27 @@ async def on_message(message):
             log.debug(f"emoji with {emoji_id} updated.")
             database.execute_update_emoji(emoji_id)
 
+
+async def check_if_cooldown(user_id):
+    # open file with all user's last message timestamp
+    with open("data/user_data.json", "r") as f:
+        user_data = json.load(f)
+
+    # if user isn't found in file
+    if user_id not in user_data:
+        user_data[user_id] = 0
+
+    # if it's been more than 30 seconds since the user's last emoji
+    if time.time() - user_data[user_id] > 30:
+        # set new timestamp for user's latest emoji
+        user_data[user_id] = time.time()
+        # dump new data into file
+        with open("data/user_data.json", "w") as f:
+            json.dump(user_data, f)
+        return False
+    # it it hasn't been enough time since the user's last emoji
+    else:
+        return True
 
 if __name__ == "__main__":
     for extension in EXTENSIONS:
