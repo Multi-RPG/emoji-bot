@@ -13,6 +13,8 @@ from emojibot.constants import Color
 
 from emojibot.database import Database
 
+from num2words import num2words
+
 log = logging.getLogger("emobot")
 
 
@@ -124,7 +126,7 @@ class Commands(commands.Cog):
             f"{author.id}/{author.avatar}.webp?size=64"
         )
 
-        # retrieve top 15 emojis
+        # retrieve top 16 emojis
         rankings = database.execute_select_leaderboard(15)
 
         # variables for embed
@@ -135,22 +137,35 @@ class Commands(commands.Cog):
         counter = 1
 
         log.debug(rankings)
-        for emoji_id, rank in rankings:
+        # start looping through the database results of top 15 used emojis
+        for emoji_id, num_uses in rankings:
+            # attempt to build the first column (emoji column)
             try:
                 name_field_column += (
-                    f"{counter}. {EMO.emoji_list[emoji_id][1]} \u200B \u200B \n"
+                    f"{EMO.emoji_list[emoji_id][1]} \n"
                 )
-            # KeyError may happen if the bot no longer has access to a certain emoji.
+                # KeyError may happen if the bot no longer has access to a certain emoji.
             except KeyError as error:
                 log.error(f"{type(error).__name__}! Couldn't locate emoji ID {error}")
                 continue
 
-            count_field_column += f"{rank}\n"
+            # convert the number of uses (integer) to a string
+            num_uses_numbers = [int(digit) for digit in str(num_uses)]
+            # prepare new string to store each word in
+            num_uses_emojis = ""
+
+            # for every integer in the string of numbers, convert it to english
+            for number in num_uses_numbers:
+                # put the numbers in english form (EX. 1 -> one) and put colons around them to convert to emojis
+                num_uses_emojis += f":{num2words(int(number))}:"
+
+            # now build the second column (number of uses for that emoji)
+            count_field_column += f"{num_uses_emojis} \n"
             counter += 1
 
         # embed the rankings
         em = discord.Embed(title="", colour=Color.yellow)
-        em.add_field(name="Top 15 Emoji", value=name_field_column, inline=True)
+        em.add_field(name="Top 15 \u200B \u200B ", value=name_field_column, inline=True)
         em.add_field(name="Uses", value=count_field_column, inline=True)
         big_url = (
             "https://cdn.shopify.com/s/files/1/0185/5092/"
