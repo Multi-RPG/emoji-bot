@@ -126,7 +126,7 @@ class Commands(commands.Cog):
             f"{author.id}/{author.avatar}.webp?size=64"
         )
 
-        # retrieve top 16 emojis
+        # retrieve top 15 emojis
         rankings = database.execute_select_leaderboard(15)
 
         # variables for embed
