@@ -70,7 +70,7 @@ class Commands(commands.Cog):
             if is_in_emoji_list(emoji_id):
                 database = Database()
                 database.connect()
-                result = database.execute_select(emoji_id)
+                result = database.execute_select_usage_count(emoji_id)
 
                 emoji_thumb = (
                     f"https://cdn.discordapp.com/emojis/{emoji_id}.png?v=1"

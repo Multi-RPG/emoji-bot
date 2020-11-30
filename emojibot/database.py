@@ -32,9 +32,16 @@ class Database:
         cur.execute(Query.delete_emoji, (arg,))
         self.connection.commit()
 
-    def execute_exist(self, arg) -> bool:
+    def execute_id_exist(self, arg) -> bool:
         cur = self.connection.cursor()
-        cur.execute(Query.emoji_exists, (arg,))
+        cur.execute(Query.emoji_id_exists, (arg,))
+        row = cur.fetchone()
+        # log.debug(f"execute_exist result: {row[0]}")
+        return row[0] == 1
+
+    def execute_name_exist(self, arg) -> bool:
+        cur = self.connection.cursor()
+        cur.execute(Query.emoji_name_exists, (arg,))
         row = cur.fetchone()
         # log.debug(f"execute_exist result: {row[0]}")
         return row[0] == 1
@@ -59,9 +66,16 @@ class Database:
         cur.execute(Query.update_emoji_count, (arg,))
         self.connection.commit()
 
-    def execute_select(self, arg):
+    def execute_select_usage_count(self, arg):
         cur = self.connection.cursor()
         cur.execute(Query.select_emoji_count, (arg,))
+        row = cur.fetchone()
+        log.debug(f"execute_select result: {row[0]}")
+        return row[0]
+
+    def execute_select_id(self, arg):
+        cur = self.connection.cursor()
+        cur.execute(Query.select_emoji_id, (arg,))
         row = cur.fetchone()
         log.debug(f"execute_select result: {row[0]}")
         return row[0]
