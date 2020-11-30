@@ -47,7 +47,7 @@ log.info("Connecting...")
 
 
 @client.event
-async def on_ready():
+async def on_ready() -> None:
     log.info(f"{client.user.name} has connected to Discord!")
     log.info(f"connected to {len(client.guilds)} servers.")
 
@@ -73,7 +73,7 @@ async def on_ready():
 
 
 @client.listen()
-async def on_message(message):
+async def on_message(message: discord.Message) -> None:
     # check if bot
     if message.author == client.user:
         return
@@ -130,7 +130,7 @@ async def on_message(message):
             database.execute_update_emoji(emoji_id)
 
 
-async def check_if_cooldown(user_id):
+async def check_if_cooldown(user_id: str) -> bool:
     # open file with all user's last message timestamp
     with open("data/user_data.json", "r") as f:
         user_data = json.load(f)

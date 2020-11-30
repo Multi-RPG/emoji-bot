@@ -1,26 +1,15 @@
 #!/usr/bin/python3
 from dataclasses import dataclass
+from typing import List, Dict
 
 
 @dataclass
 class Emoji:
     """Emoji class"""
-    def __init__(self):
-        self.emoji_list = dict()
+    def __init__(self) -> None:
+        self.emoji_list: Dict[int, List[str]] = {}
 
     # TODO: add __iter__ so it's easy to iterate this.
-    def add(self, emoji_id, name, full_name):
-        temp_list = [name, full_name]
+    def add(self, emoji_id: int, name: str, full_name: str) -> None:
+        temp_list: List[str] = [name, full_name]
         self.emoji_list.update({emoji_id: temp_list})
-
-    @staticmethod
-    def get_emoji_ranking():
-        pass
-
-    @staticmethod
-    def get_emoji_usage(emo):
-        pass
-
-    @staticmethod
-    def update_emoji(emo):
-        pass

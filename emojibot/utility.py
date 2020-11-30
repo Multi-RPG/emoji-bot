@@ -7,32 +7,33 @@ from emojibot.constants import EMOJI_PATTERN
 from emojibot.constants import EMOJI_NAME_PATTERN
 from emojibot.constants import EMOJI_ID_PATTERN
 from emojibot.constants import EMO
+from emojibot.constants import Emoji
 
 from emojibot.database import Database
 
 log = logging.getLogger("emobot")
 
 
-def parse_id(emoji) -> int:
+def parse_id(emoji: str) -> int:
     e_id = EMOJI_ID_PATTERN.search(emoji)
     return int(e_id.group())
 
 
-def parse_name(emoji) -> str:
+def parse_name(emoji: str) -> str:
     e_name = EMOJI_NAME_PATTERN.search(emoji)
     return (str(e_name.group())).replace(':', '').lower()
 
 
-def parse_emoji(msg) -> list():
+def parse_emoji(msg: str) -> List[str]:
     emojis_list = EMOJI_PATTERN.findall(msg)
     return emojis_list
 
 
-def is_in_emoji_list(emoji) -> bool:
+def is_in_emoji_list(emoji: int) -> bool:
     return emoji in EMO.emoji_list
 
 
-def load_emoji_database(emo) -> None:
+def load_emoji_database(emo: Emoji) -> None:
     log.debug("checking for new emojis...")
     database = Database()
     database.connect()
