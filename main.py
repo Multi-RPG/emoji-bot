@@ -122,7 +122,7 @@ async def on_message(message):
                 # add it to our set that will be used to update counts in database
                 emoji_id_set.add(emoji_id)
 
-        # update the emoji usage counts by 1 in database
+        # update the emoji usage counts by 1 in database for each unique emoji found
         for emoji_id in emoji_id_set:
             log.debug(f"emoji with {emoji_id} updated.")
             database.execute_update_emoji(emoji_id)
