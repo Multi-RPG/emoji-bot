@@ -11,3 +11,5 @@ token.ini
 
 # database file
 data/
+/data/
+/data
