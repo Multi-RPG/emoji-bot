@@ -12,14 +12,14 @@ EMOJI_PATTERN = re.compile(
 )
 
 # To compare parsed emojis to emojis in the server(s)
-EMOJI_NAME_PATTERN = re.compile(r"(?:<?)(?::?)(?:[0-9]?)(?:>?)")
+EMOJI_NAME_PATTERN = re.compile(r":[^:\s]*(?:::[^:\s]*)*:")
 
 # Matches the id of an emoji
 EMOJI_ID_PATTERN = re.compile(r"(?:[0-9]){18}")
 
 # extensions for bot to load in cog
 EXTENSIONS = [
-    "emojibot.commands",
+    "emojibot.commands"
 ]
 
 
@@ -37,7 +37,9 @@ class Query(NamedTuple):
     set_emoji_active = "UPDATE emoji SET active = 1 WHERE emoji_id = ?"
     delete_inactive_emojis = "DELETE FROM emoji WHERE active = 0"
     select_emoji_count = "SELECT usage_count FROM emoji WHERE emoji_id = ?"
-    emoji_exists = "SELECT EXISTS (SELECT 1 FROM emoji WHERE emoji_id = ?)"
+    select_emoji_id = "SELECT emoji_id FROM emoji WHERE name = ? LIMIT 1"
+    emoji_id_exists = "SELECT EXISTS (SELECT 1 FROM emoji WHERE emoji_id = ?)"
+    emoji_name_exists = "SELECT EXISTS (SELECT 1 FROM emoji WHERE name = ?)"
     select_leaderboard = (
         "SELECT emoji_id, usage_count FROM emoji "
         "ORDER BY usage_count DESC LIMIT ?"

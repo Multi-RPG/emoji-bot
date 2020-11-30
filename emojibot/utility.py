@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from emojibot.constants import EMOJI_PATTERN
+from emojibot.constants import EMOJI_NAME_PATTERN
 from emojibot.constants import EMOJI_ID_PATTERN
 from emojibot.constants import EMO
 
@@ -9,6 +10,11 @@ from emojibot.database import Database
 def parse_id(emoji) -> int:
     e_id = EMOJI_ID_PATTERN.search(emoji)
     return int(e_id.group())
+
+
+def parse_name(emoji) -> str:
+    e_name = EMOJI_NAME_PATTERN.search(emoji)
+    return (str(e_name.group())).replace(':', '').lower()
 
 
 def parse_emoji(msg) -> list():
@@ -28,7 +34,7 @@ def load_emoji_database(emo) -> None:
     database.execute_reset_active_emojis()
 
     for emoji_id, name in emo.emoji_list.items():
-        if database.execute_exist(emoji_id):
+        if database.execute_id_exist(emoji_id):
             # mark any useable emoji as active
             database.execute_set_emoji_active(emoji_id)
             continue

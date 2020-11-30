@@ -15,6 +15,7 @@ from emojibot.constants import EXTENSIONS
 from emojibot.constants import EMO
 
 from emojibot.utility import parse_id
+from emojibot.utility import parse_name
 from emojibot.utility import parse_emoji
 from emojibot.utility import load_emoji_database
 
@@ -55,7 +56,7 @@ async def on_ready():
 
     log.info("Loading server emojis...")
     for emoji in client.emojis:
-        EMO.add(emoji.id, emoji.name, emoji)
+        EMO.add(emoji.id, emoji.name.lower(), emoji)
     assert len(EMO.emoji_list) > 0, "Empty emojis, didn't load emojis"
 
     # load emoji database if necessary.
@@ -96,27 +97,35 @@ async def on_message(message):
     if len(emojis_list) == 0:
         return
     else:
-        # a list holding the emojis_id from the emojis in the msg.
-        emojis_id = list()
-
-        # check if is usable emoji.
-        for em in emojis_list:
-            log.debug(f"{em}")
-            emoji_id = parse_id(em)
-            if emoji_id in EMO.emoji_list:
-                emojis_id.append(emoji_id)
-
-        # convert list into set to remove duplicates
-        emojis_id = set(emojis_id)
-
-        # update the emojis
+        # connect to database
         database = Database()
         database.connect()
-        for emo_id in emojis_id:
-            # bump the emoji count
-            # bump the emoji count in the user dictionary
-            log.debug(f"emoji with {emo_id} updated.")
-            database.execute_update_emoji(emo_id)
+
+        # an empty set to hold the emojis_id from the emojis in the msg.
+        emoji_id_set = set()
+
+        # iterate through the emojis found in message
+        for em in emojis_list:
+            log.debug(f"{em}")
+            # parse the name and id from the emojis found in message
+            emoji_id = parse_id(em)
+            emoji_name = parse_name(em)
+
+            # if the emoji id exists in database
+            if database.execute_id_exist(emoji_id):
+                # add it to our set that will be used to update counts in database
+                emoji_id_set.add(emoji_id)
+            # if the emoji id couldn't be found, but there's a name match in database
+            elif database.execute_name_exist(emoji_name):
+                # overwrite ID with the closest database match
+                emoji_id = database.execute_select_id(emoji_name)
+                # add it to our set that will be used to update counts in database
+                emoji_id_set.add(emoji_id)
+
+        # update the emoji usage counts by 1 in database for each unique emoji found
+        for emoji_id in emoji_id_set:
+            log.debug(f"emoji with {emoji_id} updated.")
+            database.execute_update_emoji(emoji_id)
 
 
 if __name__ == "__main__":
