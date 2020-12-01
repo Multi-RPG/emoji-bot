@@ -15,7 +15,7 @@ log = logging.getLogger("emobot")
 
 @dataclass
 class Database:
-    data_file: str = r"data\emojis_data.sqlite3"
+    data_file: str = r"data/emojis_data.sqlite3"
 
     def connect(self) -> Optional[Connection]:
         self.connection: Optional[Connection] = None
