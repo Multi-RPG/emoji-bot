@@ -115,16 +115,20 @@ async def on_message(message: discord.Message) -> None:
 
             # if the emoji id exists in database
             if database.execute_id_exist(emoji_id):
-                # add it to our set that will be used to update counts in database
+                # add it to our set that will be used
+                # to update counts in database
                 emoji_id_set.add(emoji_id)
-            # if the emoji id couldn't be found, but there's a name match in database
+            # if the emoji id couldn't be found,
+            # but there's a name match in database
             elif database.execute_name_exist(emoji_name):
                 # overwrite ID with the closest database match
                 emoji_id = database.execute_select_id(emoji_name)
-                # add it to our set that will be used to update counts in database
+                # add it to our set that will be used
+                # to update counts in database
                 emoji_id_set.add(emoji_id)
 
-        # update the emoji usage counts by 1 in database for each unique emoji found
+        # update the emoji usage counts by 1
+        # in database for each unique emoji found
         for emoji_id in emoji_id_set:
             log.debug(f"emoji with {emoji_id} updated.")
             database.execute_update_emoji(emoji_id)

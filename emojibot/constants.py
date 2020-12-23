@@ -22,7 +22,7 @@ EXTENSIONS = [
     "emojibot.commands"
 ]
 
-BOT_INVITE_LINK = "https://discord.com/api/oauth2/authorize?client_id=592766484313407546&permissions=8&scope=applications.commands%20bot"
+BOT_INVITE_LINK = "https://discord.com/api/oauth2/authorize?client_id=592766484313407546&permissions=8&scope=applications.commands%20bot" # noqa E501
 
 
 class Query(NamedTuple):

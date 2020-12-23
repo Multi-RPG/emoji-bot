@@ -142,15 +142,18 @@ class Commands(commands.Cog):
                 # attempt to build the columns needed to display rankings
                 if counter < 9:
                     column_1 += (
-                        f"**{counter}.** {EMO.emoji_list[emoji_id][1]} \u200B \u200B \n`{num_uses} uses`\n"
+                        f"**{counter}.** {EMO.emoji_list[emoji_id][1]} \u200B \u200B \n`{num_uses} uses`\n" # noqa E501
                     )
                 else:
                     column_2 += (
-                        f"**{counter}.** {EMO.emoji_list[emoji_id][1]} \u200B \u200B \n`{num_uses} uses`\n"
+                        f"**{counter}.** {EMO.emoji_list[emoji_id][1]} \u200B \u200B \n`{num_uses} uses`\n" # noqa E501
                     )
-            # KeyError may happen if the bot no longer has access to a certain emoji.
+            # KeyError may happen if the bot no longer 
+            # has access to a certain emoji.
             except KeyError as error:
-                log.error(f"{type(error).__name__}! Couldn't locate emoji ID {error}")
+                log.error(
+                    f"{type(error).__name__}! Couldn't locate emoji ID {error}"
+                )
                 continue
 
             counter += 1
