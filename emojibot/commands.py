@@ -10,6 +10,7 @@ from emojibot.utility import is_in_emoji_list
 
 from emojibot.constants import EMO
 from emojibot.constants import Color
+from emojibot.constants import BOT_INVITE_LINK
 
 from emojibot.database import Database
 
@@ -164,6 +165,29 @@ class Commands(commands.Cog):
         )
         em.set_thumbnail(
             url=big_url)
+        em.set_footer(
+            text=f"Requested by {author.name}", icon_url=author_avatar
+        )
+        await ctx.send(embed=em)
+
+    @commands.cooldown(1, 1, commands.BucketType.user)
+    @commands.command(
+        name="invite",
+        aliases=["INVITE", "inv", "INV"],
+    )
+    async def get_invite(self, ctx):
+        author = ctx.author
+        author_avatar = (
+            f"https://cdn.discordapp.com/avatars/"
+            f"{author.id}/{author.avatar}.webp?size=64"
+        )
+
+        em = discord.Embed(title="", colour=Color.yellow)
+        em.add_field(
+            name="Bot invite link",
+            value=BOT_INVITE_LINK,
+            inline=True,
+        )
         em.set_footer(
             text=f"Requested by {author.name}", icon_url=author_avatar
         )
