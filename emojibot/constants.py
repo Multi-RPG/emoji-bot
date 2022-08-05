@@ -3,9 +3,13 @@ import re
 from typing import NamedTuple
 
 from emojibot.emoji import Emoji
+from emojibot.guild import Guild
 
 # Emoji list object
 EMO = Emoji()
+
+# Guild list object
+GUILD = Guild()
 
 EMOJI_PATTERN = re.compile(
     r"(?:<){1}(?:a)?\:(?:[0-9a-zA-Z_])+\:(?:[0-9])+(?:>){1}"

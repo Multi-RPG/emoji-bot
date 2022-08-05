@@ -14,6 +14,7 @@ from init_logging import init_logging
 
 from emojibot.constants import EXTENSIONS
 from emojibot.constants import EMO
+from emojibot.constants import GUILD
 
 from emojibot.utility import parse_id
 from emojibot.utility import parse_name
@@ -58,6 +59,10 @@ async def on_ready() -> None:
     for emoji in client.emojis:
         EMO.add(emoji.id, emoji.name.lower(), emoji)
     assert len(EMO.emoji_list) > 0, "Empty emojis, didn't load emojis"
+
+    for (index, guild) in enumerate(client.guilds):
+        GUILD.add(index, guild.name, guild.emojis)
+    assert len(GUILD.guild_list) > 0, "Empty guild, didn't load guilds"
 
     # load emoji database if necessary.
     load_emoji_database(EMO)
