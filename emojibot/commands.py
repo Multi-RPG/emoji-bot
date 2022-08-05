@@ -206,8 +206,7 @@ class Commands(commands.Cog):
         )
         await ctx.send(embed=em)
 
-    # TODO: add cooldown
-    @commands.cooldown(1, 1, commands.BucketType.user)
+    @commands.cooldown(1, 15, commands.BucketType.user)
     @commands.command(
         name="emojislist",
         aliases=["el"],
