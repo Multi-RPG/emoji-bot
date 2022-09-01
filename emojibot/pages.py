@@ -39,11 +39,7 @@ class Common_Buttons:
         ]
 
 
-class Emoji_Pages(Common_Buttons):
+class Common_Pages(Common_Buttons):
     def __init__(self, pages: List[discord.Embed]):
         Common_Buttons.__init__(self)
         self.pages: List[discod.Embed] = pages
-
-
-class Guild_Pages(Common_Buttons):
-    pass
