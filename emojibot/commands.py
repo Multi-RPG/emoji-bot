@@ -4,9 +4,10 @@ import discord
 import collections
 import math
 import asyncio
+import random
 
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
 from discord.ext import commands
 from discord.ext import pages
@@ -42,8 +43,6 @@ class Commands(commands.Cog):
             "```/count - Show emoji usage count.\n"
             "/rank - Show top 15 emojis.\n"
             "/emojis id - Show emoji lists from a given guild id.\n"
-            " Alternatively, you can enter -1 if you want to get a random list"
-            " of emojis.\n"
             "/guilds_ids - Show a list of guilds and its id.\n"
             "/range - Show the range of ids users can choose.\n"
             "/invite - Show discord link invite.```"
@@ -199,11 +198,12 @@ class Commands(commands.Cog):
 
     @commands.slash_command(
         name="emojis",
-        description="Show emoji lists from a given guild id.",
+        description="Show emoji lists from a given guild id. Or an emoji list from a random guild.",
     )
     @option(
         "guild_id",
         description="Enter the guild id.",
+        required=False
     )
     async def emojislist(
         self,
@@ -214,52 +214,60 @@ class Commands(commands.Cog):
             Get the lists of emojis of a single server using its id.
             We can get the server's id by using the command guildlist.
         """
+        def get_guild(i: Optional[int]):
+            if i:
+                if i > GUILD.max_rng:
+                    return (False, None)
+                else:
+                    return (True, GUILD.guild_list[i])
+            else:
+                return (True, random.choice(GUILD.guild_list))
 
-        if guild_id > GUILD.max_rng:
+        author = ctx.author
+        author_avatar = (
+            f"https://cdn.discordapp.com/avatars/"
+            f"{author.id}/{author.avatar}.webp?size=64"
+        )
+
+        ok, guild = get_guild(guild_id)
+        if not ok:
             await ctx.respond("`guild_id` out of range.")
+            return
 
-        else:
-            author = ctx.author
-            author_avatar = (
-                f"https://cdn.discordapp.com/avatars/"
-                f"{author.id}/{author.avatar}.webp?size=64"
+        guild_name = guild[0]
+        guild_emoji_list = guild[1]
+
+        header = f"{guild_name}'s Emojis.\n"
+
+        chunk_size = 25
+        chunked_list: List[discord.Embed] = []
+
+        # TODO: how to make this better? avoid 2 loops.
+        for i in range(0, len(guild_emoji_list), chunk_size):
+            page_em = discord.Embed(title="", colour=Color.yellow)
+            temp_str: str = ""
+            for emoji in guild_emoji_list[i:i+chunk_size]:
+                temp_str += str(emoji)
+            page_em.add_field(name=header, value=temp_str)
+            page_em.set_footer(
+                text=f"Requested by {author.name}", icon_url=author_avatar
             )
+            chunked_list.append(page_em)
 
-            guild = GUILD.guild_list[guild_id]
-            guild_name = guild[0]
-            guild_emoji_list = guild[1]
+        emoji_pages = Emoji_Pages(chunked_list)
 
-            header = f"{guild_name}'s Emojis.\n"
+        # TODO: delete message after timeout.
+        paginator = pages.Paginator(
+            pages=emoji_pages.pages,
+            show_disabled=True,
+            show_indicator=True,
+            use_default_buttons=False,
+            custom_buttons=emoji_pages.page_buttons,
+            loop_pages=True,
+            timeout=300.0,
+        )
 
-            chunk_size = 25
-            chunked_list: List[discord.Embed] = []
-
-            # TODO: how to make this better? avoid 2 loops.
-            for i in range(0, len(guild_emoji_list), chunk_size):
-                page_em = discord.Embed(title="", colour=Color.yellow)
-                temp_str: str = ""
-                for emoji in guild_emoji_list[i:i+chunk_size]:
-                    temp_str += str(emoji)
-                page_em.add_field(name=header, value=temp_str)
-                page_em.set_footer(
-                    text=f"Requested by {author.name}", icon_url=author_avatar
-                )
-                chunked_list.append(page_em)
-
-            emoji_pages = Emoji_Pages(chunked_list)
-
-            # TODO: add timeout and delete message after it.
-            paginator = pages.Paginator(
-                pages=emoji_pages.pages,
-                show_disabled=True,
-                show_indicator=True,
-                use_default_buttons=False,
-                custom_buttons=emoji_pages.page_buttons,
-                loop_pages=True,
-                timeout=300.0,
-            )
-
-            await paginator.respond(ctx.interaction, ephemeral=False)
+        await paginator.respond(ctx.interaction, ephemeral=False)
 
     # TODO: add pages
     @commands.slash_command(
