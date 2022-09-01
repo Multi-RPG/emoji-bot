@@ -20,13 +20,15 @@ from emojibot.utility import parse_id
 from emojibot.utility import parse_name
 from emojibot.utility import parse_emoji
 from emojibot.utility import load_emoji_database
+from emojibot.utility import parse_args
 
 from emojibot.database import Database
 
+# Parse command-line option to enable dev mode.
+args = parse_args()
+
 # initialize logging
-# TODO: add arg parser
-# change to logging.DEBUG during debug
-level = logging.INFO
+level = logging.DEBUG if args.dev else logging.INFO
 log = init_logging("emobot", level)
 
 # Token Configuration
@@ -40,14 +42,17 @@ except IOError:
     log.error("An error occured trying to read the file.")
     sys.exit()
 
+if args.dev:
+    log.info("Running dev mode.")
+
 intents = discord.Intents.default()
 intents.message_content = True
 
-# Bot command prefix
-client = commands.Bot(
-    command_prefix=commands.when_mentioned_or("w!"),
-    intents=intents)
+# Bot client.
+client = commands.Bot(intents=intents)
 
+# remove the default help command.
+# TODO: do still need this?
 client.remove_command("help")
 
 log.info("Connecting...")

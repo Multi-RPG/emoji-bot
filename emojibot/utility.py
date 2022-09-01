@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import logging
+import argparse
 
 from typing import List, Tuple
 
@@ -63,3 +64,16 @@ def load_emoji_database(emo: Emoji) -> None:
     # delete all inactive emojis from database
     database.execute_delete_inactive_emojis()
     log.debug("done!")
+
+
+# Parse command-line arguments for the bot.
+def parse_args():
+    """
+    Can set prefix and enable develop mode.
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--dev", help="Enable develop mode.",
+        action="store_true"
+    )
+
+    return parser.parse_args()
