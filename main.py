@@ -102,10 +102,6 @@ async def on_message(message: discord.Message) -> None:
     msg = message.content
     log.debug(f"user: {message.author}, message content: {msg}")
 
-    # if msg starts with !e, ignore.
-    if re.match(r"(?:^e!)", msg):
-        return
-
     # Grab all emojis from the msg (message.content)
     emojis_list = parse_emoji(msg)
 

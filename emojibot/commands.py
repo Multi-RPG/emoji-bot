@@ -245,7 +245,6 @@ class Commands(commands.Cog):
         )
         await paginator.respond(ctx.interaction, ephemeral=False)
 
-    # TODO: add pages
     @commands.slash_command(
         name="get_server_ids",
         description="Show a list of servers and its id.",
@@ -254,6 +253,7 @@ class Commands(commands.Cog):
         chunk_size = 8
         embed_list: List[discord.Embed] = []
 
+        # TODO: two loops. monkaD!
         for i in range(0, len(GUILD.guild_list.items()), chunk_size):
             page_em = discord.Embed(title="", colour=Color.yellow)
             temp_str: str = ""
