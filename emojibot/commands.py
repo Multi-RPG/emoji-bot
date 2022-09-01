@@ -259,6 +259,8 @@ class Commands(commands.Cog):
             temp_str: str = ""
             for idx in range(i,i+chunk_size):
                 guild_tpl = GUILD.guild_list.get(idx)
+
+                # Finishes when nothing no more servers.
                 if guild_tpl is None:
                     break
                 temp_str += (
