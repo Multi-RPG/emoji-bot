@@ -6,7 +6,9 @@ import math
 import asyncio
 
 from dataclasses import dataclass
+
 from discord.ext import commands
+from discord import option
 
 from emojibot.utility import parse_id
 from emojibot.utility import is_in_emoji_list
@@ -24,37 +26,37 @@ log = logging.getLogger("emobot")
 @dataclass
 class Commands(commands.Cog):
     """Commands for the bot"""
-
     client: commands.Bot
 
     """Help command"""
-    @commands.command(
+    @commands.slash_command(
         name="help",
-        description="command information",
-        brief="commands",
-        aliases=["h", "H", "HELP"],
+        description="Show available commands.",
     )
-    async def helper(self, ctx):
+    async def help(self, ctx):
         msg = (
-            "```e!count emoji - the total number of uses. Alias: c\n"
-            "e!rank - top 15 emojis. Aliases: r, lb\n"
-            "e!emojislist id - get list of emojis from a server. Alias: el\n"
-            "Alternatively, you can enter -1 if you want to get a random list"
+            "```/count - Show emoji usage count.\n"
+            "/rank - Show top 15 emojis.\n"
+            "/emojis id - Show emoji lists from a given guild id.\n"
+            " Alternatively, you can enter -1 if you want to get a random list"
             " of emojis.\n"
-            "e!guildlist - get list of guild and its id. Alias: gl\n"
-            "elrange - get the id range. Alias: rg\n"
-            "e!invite - discord invite link: Alias: inv```"
+            "/guilds_ids - Show a list of guilds and its id.\n"
+            "/range - Show the range of ids users can choose.\n"
+            "/invite - Show discord link invite.```"
         )
-        await ctx.send(msg)
+        await ctx.respond(msg)
 
     """Count command"""
-    @commands.cooldown(1, 1, commands.BucketType.user)
-    @commands.command(
+    @commands.slash_command(
         name="count",
-        description="prints the total count for an emoji or top 10",
-        aliases=["c", "C", "COUNT"],
+        description="Show emoji usage count.",
     )
-    async def count_method(self, ctx, *arg):
+    @option("emoji", description="Enter the emoji")
+    async def count(
+        self,
+        ctx: discord.ApplicationContext,
+        emoji: str,
+    ):
         """
             The count command works with one arg.
             If it's passed more than 1 args, it will just ignore the rest.
@@ -69,46 +71,33 @@ class Commands(commands.Cog):
             f"{author.id}/{author.avatar}.webp?size=64"
         )
 
-        if arg:
-            emoji = arg[0]
-            emoji_id = parse_id(arg[0])
+        emoji_id = parse_id(emoji)
+        emoji_thumb = (
+            f"https://cdn.discordapp.com/emojis/{emoji_id}.png?v=1"
+        )
+        em.set_thumbnail(url=emoji_thumb)
+        log.debug(emoji_id)
+
+        if is_in_emoji_list(emoji_id):
+            database = Database()
+            database.connect()
+            result = database.execute_select_usage_count(emoji_id)
+
             emoji_thumb = (
                 f"https://cdn.discordapp.com/emojis/{emoji_id}.png?v=1"
             )
-            em.set_thumbnail(url=emoji_thumb)
-            log.debug(emoji_id)
 
-            if is_in_emoji_list(emoji_id):
-                database = Database()
-                database.connect()
-                result = database.execute_select_usage_count(emoji_id)
-
-                emoji_thumb = (
-                    f"https://cdn.discordapp.com/emojis/{emoji_id}.png?v=1"
-                )
-
-                em.add_field(
-                    name=f"{author.display_name}, ",
-                    value=f"the {emoji} has been used {result} time(s).",
-                    inline=True,
-                )
-
-            else:
-                msg = (
-                    "this emoji is not in my database. "
-                    "<:waffleShrug:762854934822518805>"
-                )
-                em.add_field(
-                    name=f"{author.display_name}, ",
-                    value=msg,
-                    inline=True,
-                )
-        else:
-            msg = (
-                "please enter the emoji you want to check. "
-                "e.g. `e!count emoji`"
+            em.add_field(
+                name=f"{author.display_name}, ",
+                value=f"the {emoji} has been used {result} time(s).",
+                inline=True,
             )
 
+        else:
+            msg = (
+                "this emoji is not in my database. "
+                "<:waffleShrug:762854934822518805>"
+            )
             em.add_field(
                 name=f"{author.display_name}, ",
                 value=msg,
@@ -118,14 +107,13 @@ class Commands(commands.Cog):
         em.set_footer(
             text=f"Requested by {author.name}", icon_url=author_avatar
         )
-        await ctx.send(embed=em)
+        await ctx.respond(embed=em)
 
-    @commands.cooldown(1, 1, commands.BucketType.user)
-    @commands.command(
-        name="ranking",
-        aliases=["ranks", "leaderboards", "leaderboard", "lb", "rank"],
+    @commands.slash_command(
+        name="rank",
+        description="Show top 15 emojis."
     )
-    async def ranks(self, ctx):
+    async def rank(self, ctx):
         database = Database()
         database.connect()
 
@@ -181,14 +169,13 @@ class Commands(commands.Cog):
         em.set_footer(
             text=f"Requested by {author.name}", icon_url=author_avatar
         )
-        await ctx.send(embed=em)
+        await ctx.respond(embed=em)
 
-    @commands.cooldown(1, 1, commands.BucketType.user)
-    @commands.command(
+    @commands.slash_command(
         name="invite",
-        aliases=["INVITE", "inv", "INV"],
+        description="Show discord link invite.",
     )
-    async def get_invite(self, ctx):
+    async def invite(self, ctx):
         author = ctx.author
         author_avatar = (
             f"https://cdn.discordapp.com/avatars/"
@@ -204,52 +191,42 @@ class Commands(commands.Cog):
         em.set_footer(
             text=f"Requested by {author.name}", icon_url=author_avatar
         )
-        await ctx.send(embed=em)
+        await ctx.respond(embed=em)
 
-    @commands.cooldown(1, 15, commands.BucketType.user)
-    @commands.command(
-        name="emojislist",
-        aliases=["el"],
+    @commands.slash_command(
+        name="emojis",
+        description="Show emoji lists from a given guild id.",
     )
-    async def get_emojis(self, ctx, *guild_idx):
+    @option(
+        "guild_id",
+        description="Enter the guild id.",
+    )
+    async def emojislist(
+        self,
+        ctx: discord.ApplicationContext,
+        guild_id: int,
+    ):
         """
             Get the lists of emojis of a single server using its id.
             We can get the server's id by using the command guildlist.
         """
-        em = discord.Embed(title="", colour=Color.yellow)
-        author = ctx.author
-        author_avatar = (
-            f"https://cdn.discordapp.com/avatars/"
-            f"{author.id}/{author.avatar}.webp?size=64"
-        )
 
-        em.set_footer(
-            text=f"Requested by {author.name}", icon_url=author_avatar
-        )
+        if guild_id > GUILD.max_rng:
+            await ctx.respond("`guild_id` out of range.")
 
-        if guild_idx:
-            if len(guild_idx) > 1:
-                msg = "Too many inputs. Please enter one number."
-                em.add_field(
-                    name=f"{author.display_name}, ",
-                    value=msg,
-                    inline=True,
-                )
-                await ctx.send(embed=em)
-                return
+        else:
+            em = discord.Embed(title="", colour=Color.yellow)
+            author = ctx.author
+            author_avatar = (
+                f"https://cdn.discordapp.com/avatars/"
+                f"{author.id}/{author.avatar}.webp?size=64"
+            )
 
-            if not guild_idx[0].isdigit():
-                msg = "Please enter a number"
-                em.add_field(
-                    name=f"{author.display_name}, ",
-                    value=msg,
-                    inline=True,
-                )
-                await ctx.send(embed=em)
-                return
+            em.set_footer(
+                text=f"Requested by {author.name}", icon_url=author_avatar
+            )
 
-            idx = int(guild_idx[0])
-            guild = GUILD.guild_list[idx]
+            guild = GUILD.guild_list[guild_id]
             guild_name = guild[0]
             guild_emoji_list = guild[1]
 
@@ -269,28 +246,19 @@ class Commands(commands.Cog):
                 elif idx >= 75:
                     line_four += str(guild_emoji_list[idx])
 
-            await ctx.send(header)
+            await ctx.respond(header)
             if len(line_one) > 0:
-                await ctx.send(line_one)
+                await ctx.respond(line_one)
             if len(line_two) > 0:
-                await ctx.send(line_two)
+                await ctx.respond(line_two)
             if len(line_three) > 0:
-                await ctx.send(line_three)
+                await ctx.respond(line_three)
             if len(line_four) > 0:
-                await ctx.send(line_four)
-        else:
-            msg = "Please enter the server ID."
-            em.add_field(
-                name=f"{author.display_name}, ",
-                value=msg,
-                inline=True,
-            )
-            await ctx.send(embed=em)
+                await ctx.respond(line_four)
 
-    @commands.cooldown(1, 1, commands.BucketType.user)
-    @commands.command(
-        name="guildlist",
-        aliases=["gl"],
+    @commands.slash_command(
+        name="guilds_id",
+        description="Show a list of guilds and its id.",
     )
     async def get_guild_emojis_list(self, ctx):
         author = ctx.author
@@ -323,7 +291,7 @@ class Commands(commands.Cog):
                     f"**{guild_id}**: **{guild_name[0]}** \u200B \u200B \n")
 
             em.add_field(name="Server IDs", value=column_1, inline=True)
-            await ctx.send(embed=em)
+            await ctx.respond(embed=em)
 
         elif number_of_guilds > 8 and number_of_guilds <= 16:
             column_1 = ""
@@ -339,7 +307,7 @@ class Commands(commands.Cog):
 
             em.add_field(name="Server IDs", value=column_1, inline=True)
             em.add_field(name="\u200B", value=column_2, inline=True)
-            await ctx.send(embed=em)
+            await ctx.respond(embed=em)
 
         elif number_of_guilds > 16:
             column_1 = ""
@@ -360,7 +328,7 @@ class Commands(commands.Cog):
 
             em.add_field(name="Server IDs", value=column_1, inline=True)
             em.add_field(name="\u200B", value=column_2, inline=True)
-            msg = await ctx.send(embed=em)
+            msg = await ctx.respond(embed=em)
             await msg.add_reaction(emoji=emoji.Right)
 
             def is_author(reaction, user):
@@ -394,7 +362,7 @@ class Commands(commands.Cog):
 
                     em.add_field(name="Server IDs", value=column_1, inline=True)
                     em.add_field(name="\u200B", value=column_2, inline=True)
-                    msg = await ctx.send(embed=em)
+                    msg = await ctx.respond(embed=em)
                     await msg.add_reaction(emoji_emoji.Left)
                     stride += 15
                     if not current_page == total_pages:
@@ -413,7 +381,7 @@ class Commands(commands.Cog):
 
                     em.add_field(name="Server IDs", value=column_1, inline=True)
                     em.add_field(name="\u200B", value=column_2, inline=True)
-                    msg = await ctx.send(embed=em)
+                    msg = await ctx.respond(embed=em)
                     stride -= 15
                     if not current_page == 1:
                         await msg.add_reaction(emoji=emoji.Left)
@@ -428,13 +396,12 @@ class Commands(commands.Cog):
             await msg.delete()
 
 
-    @commands.command(
+    @commands.slash_command(
         name="range",
-        aliases=["rg"],
+        description="Show the range of ids users can choose.",
     )
-    async def guild_list_len(self, ctx):
-        total = len(GUILD.guild_list)
-        await ctx.send(f"```Guild list's IDs range: 0 to {total-1}```")
+    async def guildlist(self, ctx):
+        await ctx.respond(f"```Guild list's IDs range: 0 to {GUILD.max_rng}```")
 
 
 def setup(client):
