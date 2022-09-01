@@ -16,7 +16,7 @@ from discord import option
 from emojibot.utility import parse_id
 from emojibot.utility import is_in_emoji_list
 
-from emojibot.pages import Emoji_Pages
+from emojibot.pages import Common_Pages
 
 from emojibot.constants import EMO
 from emojibot.constants import GUILD
@@ -33,6 +33,14 @@ class Commands(commands.Cog):
     """Commands for the bot"""
     client: commands.Bot
 
+    def _get_guild(self, i: Optional[int] = None):
+        match i:
+            case int(i):
+                log.debug(f"in get_guild() i = {i}")
+                return GUILD.guild_list[i]
+            case None:
+                return random.choice(GUILD.guild_list)
+
     """Help command"""
     @commands.slash_command(
         name="help",
@@ -42,9 +50,9 @@ class Commands(commands.Cog):
         msg = (
             "```/count - Show emoji usage count.\n"
             "/rank - Show top 15 emojis.\n"
-            "/emojis id - Show emoji lists from a given guild id.\n"
-            "/guilds_ids - Show a list of guilds and its id.\n"
-            "/range - Show the range of ids users can choose.\n"
+            "/emojis server_id - Show emoji lists from a given server id.\n"
+            "/get_server_ids - Show a list of servers and its id.\n"
+            "/range - Show the min and max ids.\n"
             "/invite - Show discord link invite.```"
         )
         await ctx.respond(msg)
@@ -68,11 +76,6 @@ class Commands(commands.Cog):
             e!count emoji_name
         """
         em = discord.Embed(title="", colour=Color.yellow)
-        author = ctx.author
-        author_avatar = (
-            f"https://cdn.discordapp.com/avatars/"
-            f"{author.id}/{author.avatar}.webp?size=64"
-        )
 
         emoji_id = parse_id(emoji)
         emoji_thumb = (
@@ -91,7 +94,7 @@ class Commands(commands.Cog):
             )
 
             em.add_field(
-                name=f"{author.display_name}, ",
+                name=f"{ctx.author.display_name}, ",
                 value=f"the {emoji} has been used {result} time(s).",
                 inline=True,
             )
@@ -102,13 +105,13 @@ class Commands(commands.Cog):
                 "<:waffleShrug:762854934822518805>"
             )
             em.add_field(
-                name=f"{author.display_name}, ",
+                name=f"{ctx.author.display_name}, ",
                 value=msg,
                 inline=True,
             )
 
         em.set_footer(
-            text=f"Requested by {author.name}", icon_url=author_avatar
+            text=f"Requested by {ctx.author.name}", icon_url=ctx.author.avatar
         )
         await ctx.respond(embed=em)
 
@@ -119,12 +122,6 @@ class Commands(commands.Cog):
     async def rank(self, ctx):
         database = Database()
         database.connect()
-
-        author = ctx.author
-        author_avatar = (
-            f"https://cdn.discordapp.com/avatars/"
-            f"{author.id}/{author.avatar}.webp?size=64"
-        )
 
         # retrieve top 16 emojis
         rankings = database.execute_select_leaderboard(16)
@@ -170,7 +167,7 @@ class Commands(commands.Cog):
         em.set_thumbnail(
             url=big_url)
         em.set_footer(
-            text=f"Requested by {author.name}", icon_url=author_avatar
+            text=f"Requested by {ctx.author.name}", icon_url=ctx.author.avatar
         )
         await ctx.respond(embed=em)
 
@@ -179,12 +176,6 @@ class Commands(commands.Cog):
         description="Show discord link invite.",
     )
     async def invite(self, ctx):
-        author = ctx.author
-        author_avatar = (
-            f"https://cdn.discordapp.com/avatars/"
-            f"{author.id}/{author.avatar}.webp?size=64"
-        )
-
         em = discord.Embed(title="", colour=Color.yellow)
         em.add_field(
             name="Bot invite link",
@@ -192,55 +183,41 @@ class Commands(commands.Cog):
             inline=True,
         )
         em.set_footer(
-            text=f"Requested by {author.name}", icon_url=author_avatar
+            text=f"Requested by {ctx.author.name}", icon_url=ctx.author.avatar
         )
         await ctx.respond(embed=em)
 
     @commands.slash_command(
         name="emojis",
-        description="Show emoji lists from a given guild id. Or an emoji list from a random guild.",
+        description="Show emoji lists from a given server id. Or an emoji list from a random server.",
     )
     @option(
-        "guild_id",
-        description="Enter the guild id.",
+        "server_id",
+        description="Enter the server id.",
         required=False
     )
     async def emojislist(
         self,
         ctx: discord.ApplicationContext,
-        guild_id: int,
+        server_id: int,
     ):
         """
             Get the lists of emojis of a single server using its id.
             We can get the server's id by using the command guildlist.
         """
-        def get_guild(i: Optional[int]):
-            if i:
-                if i > GUILD.max_rng:
-                    return (False, None)
-                else:
-                    return (True, GUILD.guild_list[i])
-            else:
-                return (True, random.choice(GUILD.guild_list))
+        if server_id:
+            if server_id > GUILD.max_rng:
+                await ctx.respond("`server_id` out of range.")
+                return
 
-        author = ctx.author
-        author_avatar = (
-            f"https://cdn.discordapp.com/avatars/"
-            f"{author.id}/{author.avatar}.webp?size=64"
-        )
-
-        ok, guild = get_guild(guild_id)
-        if not ok:
-            await ctx.respond("`guild_id` out of range.")
-            return
-
+        guild = self._get_guild(server_id)
         guild_name = guild[0]
         guild_emoji_list = guild[1]
 
         header = f"{guild_name}'s Emojis.\n"
 
         chunk_size = 25
-        chunked_list: List[discord.Embed] = []
+        embed_list: List[discord.Embed] = []
 
         # TODO: how to make this better? avoid 2 loops.
         for i in range(0, len(guild_emoji_list), chunk_size):
@@ -250,11 +227,11 @@ class Commands(commands.Cog):
                 temp_str += str(emoji)
             page_em.add_field(name=header, value=temp_str)
             page_em.set_footer(
-                text=f"Requested by {author.name}", icon_url=author_avatar
+                text=f"Requested by {ctx.author.name}", icon_url=ctx.author.avatar
             )
-            chunked_list.append(page_em)
+            embed_list.append(page_em)
 
-        emoji_pages = Emoji_Pages(chunked_list)
+        emoji_pages = Common_Pages(embed_list)
 
         # TODO: delete message after timeout.
         paginator = pages.Paginator(
@@ -266,156 +243,52 @@ class Commands(commands.Cog):
             loop_pages=True,
             timeout=300.0,
         )
-
         await paginator.respond(ctx.interaction, ephemeral=False)
 
     # TODO: add pages
     @commands.slash_command(
-        name="guilds_ids",
-        description="Show a list of guilds and its id.",
+        name="get_server_ids",
+        description="Show a list of servers and its id.",
     )
     async def get_guild_emojis_list(self, ctx):
-        author = ctx.author
-        author_avatar = (
-            f"https://cdn.discordapp.com/avatars/"
-            f"{author.id}/{author.avatar}.webp?size=64"
+        chunk_size = 8
+        embed_list: List[discord.Embed] = []
+
+        for i in range(0, len(GUILD.guild_list.items()), chunk_size):
+            page_em = discord.Embed(title="", colour=Color.yellow)
+            temp_str: str = ""
+            for idx in range(i,i+chunk_size):
+                guild_tpl = GUILD.guild_list.get(idx)
+                if guild_tpl is None:
+                    break
+                temp_str += (
+                    f"**{idx}**: **{guild_tpl[0]}** \u200B \u200B \n")
+            page_em.add_field(name="Server IDs", value=temp_str, inline=True)
+            page_em.set_footer(
+                text=f"Requested by {ctx.author.name}", icon_url=ctx.author.avatar
+            )
+            embed_list.append(page_em)
+
+        guild_pages = Common_Pages(embed_list)
+
+        # TODO: delete message after timeout.
+        paginator = pages.Paginator(
+            pages=guild_pages.pages,
+            show_disabled=True,
+            show_indicator=True,
+            use_default_buttons=False,
+            custom_buttons=guild_pages.page_buttons,
+            loop_pages=True,
+            timeout=300.0,
         )
-
-        # Emojis used for reaction
-        Emoji_Reaction = collections.namedtuple(
-            "Emoji_Reaction", ["Left", "Right"]
-        )
-        emoji = Emoji_Reaction("⬅️", "➡️")
-
-        number_of_guilds = len(GUILD.guild_list)
-        log.debug(f"number of guilds: {number_of_guilds}")
-
-
-        em = discord.Embed(title="", colour=Color.yellow)
-        em.set_footer(
-            text=f"Requested by {author.name}", icon_url=author_avatar
-        )
-
-        counter = 1;
-        if number_of_guilds <= 8:
-            # one column is enough
-            column_1 = ""
-            for guild_id, guild_name in GUILD.guild_list.items():
-                column_1 += (
-                    f"**{guild_id}**: **{guild_name[0]}** \u200B \u200B \n")
-
-            em.add_field(name="Server IDs", value=column_1, inline=True)
-            await ctx.respond(embed=em)
-
-        elif number_of_guilds > 8 and number_of_guilds <= 16:
-            column_1 = ""
-            column_2 = ""
-            for guild_id, guild_name in GUILD.guild_list.items():
-                if counter < 9:
-                    column_1 += (
-                        f"**{guild_id}**: **{guild_name[0]}** \u200B \u200B \n")
-                else:
-                    column_2 += (
-                        f"**{guild_id}**: **{guild_name[0]}** \u200B \u200B \n")
-                counter += 1
-
-            em.add_field(name="Server IDs", value=column_1, inline=True)
-            em.add_field(name="\u200B", value=column_2, inline=True)
-            await ctx.respond(embed=em)
-
-        elif number_of_guilds > 16:
-            column_1 = ""
-            column_2 = ""
-
-            total_pages = int(math.ceil(number_of_guilds) / 16.0)
-
-            guild_lists = [(i, name) for guild_id, guild_name in GUILD.guild_list.items]
-            counter = 1
-            for i, name in guild_lists[stride : stride + 15]:
-                if counter < 9:
-                    column_1 += (
-                        f"**{i}**: **{name[0]}** \u200B \u200B \n")
-                else:
-                    column_2 += (
-                        f"**{i}**: **{name[0]}** \u200B \u200B \n")
-                counter += 1
-
-            em.add_field(name="Server IDs", value=column_1, inline=True)
-            em.add_field(name="\u200B", value=column_2, inline=True)
-            msg = await ctx.respond(embed=em)
-            await msg.add_reaction(emoji=emoji.Right)
-
-            def is_author(reaction, user):
-                return user == author and str(reaction.emoji) in emoji
-
-            reaction, user = await self.client.wait_for(
-                "reaction_add",
-                check=is_author,
-                timeout=30)
-
-            stride = 15
-            current_page = 1
-            while reaction:
-                await msg.delete()
-
-                counter = 1
-                column_1 = ""
-                column_2 = ""
-
-                em.clear_fields()
-                if str(reaction) == emoji.Right:
-                    current_page += 1
-                    for i, name in guild_lists[stride : stride + 15]:
-                        if counter < 9:
-                            column_1 += (
-                                f"**{i}**: **{name[0]}** \u200B \u200B \n")
-                        else:
-                            column_2 += (
-                                f"**{i}**: **{name[0]}** \u200B \u200B \n")
-                        counter += 1
-
-                    em.add_field(name="Server IDs", value=column_1, inline=True)
-                    em.add_field(name="\u200B", value=column_2, inline=True)
-                    msg = await ctx.respond(embed=em)
-                    await msg.add_reaction(emoji_emoji.Left)
-                    stride += 15
-                    if not current_page == total_pages:
-                        await msg.add_reaction(emoji=emoji.Right)
-
-                elif str(reaction) == emoji.Left:
-                    current_page -= 1
-                    for i, name in guild_lists[stride - 15 : stride]:
-                        if counter < 9:
-                            column_1 += (
-                                f"**{i}**: **{name[0]}** \u200B \u200B \n")
-                        else:
-                            column_2 += (
-                                f"**{i}**: **{name[0]}** \u200B \u200B \n")
-                        counter += 1
-
-                    em.add_field(name="Server IDs", value=column_1, inline=True)
-                    em.add_field(name="\u200B", value=column_2, inline=True)
-                    msg = await ctx.respond(embed=em)
-                    stride -= 15
-                    if not current_page == 1:
-                        await msg.add_reaction(emoji=emoji.Left)
-                    await msg.add_reaction(emoji_emoji.Right)
-
-                reaction, user = await self.client.wait_for(
-                    "reaction_add",
-                    check=is_author,
-                    timeout=30)
-
-            await asyncio.sleep(30)
-            await msg.delete()
-
+        await paginator.respond(ctx.interaction, ephemeral=False)
 
     @commands.slash_command(
         name="range",
-        description="Show the range of ids users can choose.",
+        description="Show the min and max ids.",
     )
     async def guildlist(self, ctx):
-        await ctx.respond(f"```Guild list's IDs range: 0 to {GUILD.max_rng}```")
+        await ctx.respond(f"```Server list's IDs range: 0 to {GUILD.max_rng}```")
 
 
 def setup(client):
