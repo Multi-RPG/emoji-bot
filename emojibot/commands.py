@@ -6,12 +6,16 @@ import math
 import asyncio
 
 from dataclasses import dataclass
+from typing import List
 
 from discord.ext import commands
+from discord.ext import pages
 from discord import option
 
 from emojibot.utility import parse_id
 from emojibot.utility import is_in_emoji_list
+
+from emojibot.pages import Emoji_Pages
 
 from emojibot.constants import EMO
 from emojibot.constants import GUILD
@@ -215,15 +219,10 @@ class Commands(commands.Cog):
             await ctx.respond("`guild_id` out of range.")
 
         else:
-            em = discord.Embed(title="", colour=Color.yellow)
             author = ctx.author
             author_avatar = (
                 f"https://cdn.discordapp.com/avatars/"
                 f"{author.id}/{author.avatar}.webp?size=64"
-            )
-
-            em.set_footer(
-                text=f"Requested by {author.name}", icon_url=author_avatar
             )
 
             guild = GUILD.guild_list[guild_id]
@@ -231,31 +230,38 @@ class Commands(commands.Cog):
             guild_emoji_list = guild[1]
 
             header = f"{guild_name}'s Emojis.\n"
-            line_one = ""
-            line_two = ""
-            line_three = ""
-            line_four = ""
 
-            for idx in range(len(guild_emoji_list)):
-                if idx < 25:
-                    line_one += str(guild_emoji_list[idx])
-                elif idx >= 25 and idx < 50:
-                    line_two += str(guild_emoji_list[idx])
-                elif idx >= 50 and idx < 75:
-                    line_three += str(guild_emoji_list[idx])
-                elif idx >= 75:
-                    line_four += str(guild_emoji_list[idx])
+            chunk_size = 25
+            chunked_list: List[discord.Embed] = []
 
-            await ctx.respond(header)
-            if len(line_one) > 0:
-                await ctx.respond(line_one)
-            if len(line_two) > 0:
-                await ctx.respond(line_two)
-            if len(line_three) > 0:
-                await ctx.respond(line_three)
-            if len(line_four) > 0:
-                await ctx.respond(line_four)
+            # TODO: how to make this better? avoid 2 loops.
+            for i in range(0, len(guild_emoji_list), chunk_size):
+                page_em = discord.Embed(title="", colour=Color.yellow)
+                temp_str: str = ""
+                for emoji in guild_emoji_list[i:i+chunk_size]:
+                    temp_str += str(emoji)
+                page_em.add_field(name=header, value=temp_str)
+                page_em.set_footer(
+                    text=f"Requested by {author.name}", icon_url=author_avatar
+                )
+                chunked_list.append(page_em)
 
+            emoji_pages = Emoji_Pages(chunked_list)
+
+            # TODO: add timeout and delete message after it.
+            paginator = pages.Paginator(
+                pages=emoji_pages.pages,
+                show_disabled=True,
+                show_indicator=True,
+                use_default_buttons=False,
+                custom_buttons=emoji_pages.page_buttons,
+                loop_pages=True,
+                timeout=300.0,
+            )
+
+            await paginator.respond(ctx.interaction, ephemeral=False)
+
+    # TODO: add pages
     @commands.slash_command(
         name="guilds_ids",
         description="Show a list of guilds and its id.",
