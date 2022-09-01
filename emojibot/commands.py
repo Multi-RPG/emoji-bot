@@ -257,7 +257,7 @@ class Commands(commands.Cog):
                 await ctx.respond(line_four)
 
     @commands.slash_command(
-        name="guilds_id",
+        name="guilds_ids",
         description="Show a list of guilds and its id.",
     )
     async def get_guild_emojis_list(self, ctx):
