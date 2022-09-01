@@ -40,8 +40,14 @@ except IOError:
     log.error("An error occured trying to read the file.")
     sys.exit()
 
+intents = discord.Intents.default()
+intents.message_content = True
+
 # Bot command prefix
-client = commands.Bot(command_prefix=["e!"])
+client = commands.Bot(
+    command_prefix=commands.when_mentioned_or("w!"),
+    intents=intents)
+
 client.remove_command("help")
 
 log.info("Connecting...")
@@ -63,6 +69,8 @@ async def on_ready() -> None:
     for (index, guild) in enumerate(client.guilds):
         GUILD.add(index, guild.name, guild.emojis)
     assert len(GUILD.guild_list) > 0, "Empty guild, didn't load guilds"
+    # to set max_range
+    GUILD.set_range()
 
     # load emoji database if necessary.
     load_emoji_database(EMO)
@@ -73,7 +81,7 @@ async def on_ready() -> None:
     log.info(f"{len(EMO.emoji_list)} emojis")
     log.info("Done loading emojis!")
 
-    pog_du = discord.Game(name="e!help for commands")
+    pog_du = discord.Game(name="/help for commands")
     await client.change_presence(activity=pog_du)
 
 
